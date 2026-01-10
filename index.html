@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>This or That - Image Voting Tool</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🤔</text></svg>">
     <style>
         * {
             margin: 0;
@@ -442,6 +443,17 @@
             return data.result ? JSON.parse(data.result) : null;
         }
 
+        async function redisSetNumber(key, value) {
+            const response = await fetch(`${REDIS_URL}/set/${key}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${REDIS_TOKEN}`
+                },
+                body: String(value)
+            });
+            return response.json();
+        }
+
         async function redisIncr(key) {
             const response = await fetch(`${REDIS_URL}/incr/${key}`, {
                 method: 'POST',
@@ -458,8 +470,8 @@
 
             // Store poll data in Redis
             await redisSet(`poll:${uuid}`, JSON.stringify(pollData));
-            await redisSet(`votes:${uuid}:1`, '0');
-            await redisSet(`votes:${uuid}:2`, '0');
+            await redisSetNumber(`votes:${uuid}:1`, 0);
+            await redisSetNumber(`votes:${uuid}:2`, 0);
 
             // Create shareable URL
             const shareUrl = `${window.location.origin}${window.location.pathname}?poll=${uuid}`;
