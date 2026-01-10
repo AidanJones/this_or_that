@@ -225,6 +225,21 @@
             background: #5568d3;
         }
 
+        .new-poll-btn {
+            background: #764ba2;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 15px;
+        }
+
+        .new-poll-btn:hover {
+            background: #653a8a;
+        }
+
         .loading {
             text-align: center;
             color: #666;
@@ -315,6 +330,7 @@
                 <h2>Share this poll with friends</h2>
                 <div class="share-url" id="shareUrl"></div>
                 <button class="copy-btn" id="copyBtn">Copy Link</button>
+                <button class="new-poll-btn" id="newPollBtn">Create New Poll</button>
             </div>
         </div>
 
@@ -371,16 +387,33 @@
             });
         }
 
-        // Fetch image from URL and convert to base64
-        async function fetchImageAsBase64(url) {
-            try {
-                // For cross-origin images, we'll use a proxy or just store the URL
-                // Since we can't fetch cross-origin images directly, we'll store the URL
-                return url;
-            } catch (error) {
-                console.error('Error fetching image:', error);
+        // Process image URL to handle CORS and external images
+        function processImageUrl(url) {
+            if (!url) return url;
+
+            // Check if it's already a data URL
+            if (url.startsWith('data:')) {
                 return url;
             }
+
+            // For Amazon URLs, extract the image or use proxy
+            if (isAmazonUrl(url)) {
+                // Try to extract ASIN and construct image URL
+                const asinMatch = url.match(/\/([A-Z0-9]{10})(?:[/?]|$)/);
+                if (asinMatch) {
+                    const asin = asinMatch[1];
+                    // Use Amazon's image URL format
+                    return `https://images-na.ssl-images-amazon.com/images/P/${asin}.jpg`;
+                }
+            }
+
+            // For other external URLs, use image proxy to avoid CORS issues
+            // Using wsrv.nl which is a reliable image proxy service
+            if (url.startsWith('http://') || url.startsWith('https://')) {
+                return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=800`;
+            }
+
+            return url;
         }
 
         // Extract Amazon product info (basic - just get the URL for now)
@@ -417,7 +450,8 @@
             if (url) {
                 pollData.img1 = url;
                 pollData.url1 = isAmazonUrl(url) ? url : null;
-                document.getElementById('preview1').src = url;
+                // Use processed URL for preview
+                document.getElementById('preview1').src = processImageUrl(url);
                 document.getElementById('preview1').classList.add('show');
                 document.getElementById('file1').value = '';
             }
@@ -429,7 +463,8 @@
             if (url) {
                 pollData.img2 = url;
                 pollData.url2 = isAmazonUrl(url) ? url : null;
-                document.getElementById('preview2').src = url;
+                // Use processed URL for preview
+                document.getElementById('preview2').src = processImageUrl(url);
                 document.getElementById('preview2').classList.add('show');
                 document.getElementById('file2').value = '';
             }
@@ -515,9 +550,9 @@
 
                 const pollInfo = JSON.parse(data);
 
-                // Set images
-                document.getElementById('pollImg1').src = pollInfo.img1;
-                document.getElementById('pollImg2').src = pollInfo.img2;
+                // Set images (process URLs for CORS/Amazon handling)
+                document.getElementById('pollImg1').src = processImageUrl(pollInfo.img1);
+                document.getElementById('pollImg2').src = processImageUrl(pollInfo.img2);
 
                 // Set product links if available
                 if (pollInfo.url1) {
@@ -610,6 +645,43 @@
                     btn.textContent = 'Copy Link';
                 }, 2000);
             });
+        });
+
+        // Create new poll
+        document.getElementById('newPollBtn').addEventListener('click', () => {
+            // Reset poll data
+            pollData = {
+                img1: null,
+                img2: null,
+                url1: null,
+                url2: null
+            };
+
+            // Clear all inputs
+            document.getElementById('file1').value = '';
+            document.getElementById('file2').value = '';
+            document.getElementById('url1').value = '';
+            document.getElementById('url2').value = '';
+
+            // Hide previews
+            document.getElementById('preview1').classList.remove('show');
+            document.getElementById('preview2').classList.remove('show');
+            document.getElementById('preview1').src = '';
+            document.getElementById('preview2').src = '';
+
+            // Reset product links
+            document.getElementById('link1').style.display = 'none';
+            document.getElementById('link2').style.display = 'none';
+
+            // Disable create button
+            document.getElementById('createBtn').disabled = true;
+
+            // Hide voting section, show create section
+            document.getElementById('votingSection').style.display = 'none';
+            document.getElementById('createSection').style.display = 'block';
+
+            // Clear URL parameter
+            window.history.pushState({}, '', window.location.pathname);
         });
 
         // Check if we're loading a poll
