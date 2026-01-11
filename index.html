@@ -396,14 +396,18 @@
                 return url;
             }
 
-            // For Amazon URLs, extract the image or use proxy
+            // For Amazon image URLs (already extracted), pass through
+            if (url.includes('images-na.ssl-images-amazon.com') ||
+                url.includes('m.media-amazon.com')) {
+                return url;
+            }
+
+            // For Amazon product URLs (shouldn't happen now but as fallback)
             if (isAmazonUrl(url)) {
-                // Try to extract ASIN and construct image URL
-                const asinMatch = url.match(/\/([A-Z0-9]{10})(?:[/?]|$)/);
-                if (asinMatch) {
-                    const asin = asinMatch[1];
-                    // Use Amazon's image URL format
-                    return `https://images-na.ssl-images-amazon.com/images/P/${asin}.jpg`;
+                const asin = extractAsin(url);
+                if (asin) {
+                    // Use Amazon's primary image CDN format
+                    return `https://images-na.ssl-images-amazon.com/images/P/${asin}.01.LZZZZZZZ.jpg`;
                 }
             }
 
@@ -419,6 +423,91 @@
         // Extract Amazon product info (basic - just get the URL for now)
         function isAmazonUrl(url) {
             return url && (url.includes('amazon.com') || url.includes('amazon.co.uk'));
+        }
+
+        // Extract ASIN from Amazon URL
+        function extractAsin(url) {
+            // Try multiple Amazon URL patterns
+            const patterns = [
+                /\/dp\/([A-Z0-9]{10})/,           // /dp/ASIN
+                /\/gp\/product\/([A-Z0-9]{10})/,  // /gp/product/ASIN
+                /\/product\/([A-Z0-9]{10})/,      // /product/ASIN
+                /\/([A-Z0-9]{10})(?:[/?]|$)/      // Generic ASIN pattern
+            ];
+
+            for (const pattern of patterns) {
+                const match = url.match(pattern);
+                if (match) {
+                    return match[1];
+                }
+            }
+            return null;
+        }
+
+        // Fetch Amazon page and extract product image
+        async function extractAmazonImage(url) {
+            try {
+                // First try to extract ASIN and use Amazon's image CDN
+                const asin = extractAsin(url);
+                if (asin) {
+                    // Try Amazon's primary image CDN
+                    const imageUrl = `https://images-na.ssl-images-amazon.com/images/P/${asin}.01.LZZZZZZZ.jpg`;
+
+                    // Test if the image exists by trying to load it
+                    const img = new Image();
+                    const imagePromise = new Promise((resolve, reject) => {
+                        img.onload = () => resolve(imageUrl);
+                        img.onerror = () => reject();
+                        img.src = imageUrl;
+                    });
+
+                    try {
+                        return await imagePromise;
+                    } catch {
+                        // If primary CDN fails, try alternative format
+                        const altImageUrl = `https://m.media-amazon.com/images/I/${asin}.jpg`;
+                        img.src = altImageUrl;
+                        try {
+                            return await new Promise((resolve, reject) => {
+                                img.onload = () => resolve(altImageUrl);
+                                img.onerror = () => reject();
+                            });
+                        } catch {
+                            // Continue to fetch method below
+                        }
+                    }
+                }
+
+                // If ASIN extraction or image loading fails, fetch the page HTML
+                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+                const response = await fetch(proxyUrl);
+                const data = await response.json();
+                const html = data.contents;
+
+                // Extract og:image meta tag
+                const ogImageMatch = html.match(/<meta property="og:image" content="([^"]+)"/);
+                if (ogImageMatch) {
+                    return ogImageMatch[1];
+                }
+
+                // Try to find main product image in the HTML
+                const imgMatch = html.match(/data-old-hires="([^"]+)"/);
+                if (imgMatch) {
+                    return imgMatch[1];
+                }
+
+                // Fallback to landingImage if available
+                const landingMatch = html.match(/landingImage['"]\s*:\s*['"]([^'"]+)['"]/);
+                if (landingMatch) {
+                    return landingMatch[1].replace(/\\_/g, '_');
+                }
+
+                // If all else fails, return null and we'll use a fallback
+                return null;
+            } catch (error) {
+                console.error('Error extracting Amazon image:', error);
+                return null;
+            }
         }
 
         // File input handlers
@@ -445,27 +534,79 @@
         });
 
         // URL input handlers
-        document.getElementById('url1').addEventListener('input', (e) => {
+        document.getElementById('url1').addEventListener('input', async (e) => {
             const url = e.target.value.trim();
             if (url) {
-                pollData.img1 = url;
-                pollData.url1 = isAmazonUrl(url) ? url : null;
-                // Use processed URL for preview
-                document.getElementById('preview1').src = processImageUrl(url);
-                document.getElementById('preview1').classList.add('show');
+                const preview = document.getElementById('preview1');
+
+                // Check if it's an Amazon URL
+                if (isAmazonUrl(url)) {
+                    pollData.url1 = url; // Store the product URL
+
+                    // Show loading indicator
+                    preview.style.opacity = '0.5';
+                    preview.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg"/>';
+                    preview.classList.add('show');
+
+                    // Extract the image from Amazon page
+                    const imageUrl = await extractAmazonImage(url);
+                    if (imageUrl) {
+                        pollData.img1 = imageUrl; // Store the extracted image URL
+                        preview.src = processImageUrl(imageUrl);
+                        preview.style.opacity = '1';
+                    } else {
+                        // Fallback if extraction fails
+                        pollData.img1 = url;
+                        preview.src = processImageUrl(url);
+                        preview.style.opacity = '1';
+                    }
+                } else {
+                    // Regular image URL
+                    pollData.img1 = url;
+                    pollData.url1 = null;
+                    preview.src = processImageUrl(url);
+                    preview.classList.add('show');
+                }
+
                 document.getElementById('file1').value = '';
             }
             checkReadyToCreate();
         });
 
-        document.getElementById('url2').addEventListener('input', (e) => {
+        document.getElementById('url2').addEventListener('input', async (e) => {
             const url = e.target.value.trim();
             if (url) {
-                pollData.img2 = url;
-                pollData.url2 = isAmazonUrl(url) ? url : null;
-                // Use processed URL for preview
-                document.getElementById('preview2').src = processImageUrl(url);
-                document.getElementById('preview2').classList.add('show');
+                const preview = document.getElementById('preview2');
+
+                // Check if it's an Amazon URL
+                if (isAmazonUrl(url)) {
+                    pollData.url2 = url; // Store the product URL
+
+                    // Show loading indicator
+                    preview.style.opacity = '0.5';
+                    preview.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg"/>';
+                    preview.classList.add('show');
+
+                    // Extract the image from Amazon page
+                    const imageUrl = await extractAmazonImage(url);
+                    if (imageUrl) {
+                        pollData.img2 = imageUrl; // Store the extracted image URL
+                        preview.src = processImageUrl(imageUrl);
+                        preview.style.opacity = '1';
+                    } else {
+                        // Fallback if extraction fails
+                        pollData.img2 = url;
+                        preview.src = processImageUrl(url);
+                        preview.style.opacity = '1';
+                    }
+                } else {
+                    // Regular image URL
+                    pollData.img2 = url;
+                    pollData.url2 = null;
+                    preview.src = processImageUrl(url);
+                    preview.classList.add('show');
+                }
+
                 document.getElementById('file2').value = '';
             }
             checkReadyToCreate();
