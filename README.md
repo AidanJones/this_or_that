@@ -13,6 +13,14 @@ A simple, single-file web utility for creating image polls. Upload two images (o
 
 ## Usage
 
+To run a demo server:
+python3 -m http.server 8000 
+
+
+There is also an action setup to publish to.. 
+https://aidanjones.github.io/this_or_that/ 
+
+
 ### Creating a Poll
 
 1. Open `index.html` in your web browser
