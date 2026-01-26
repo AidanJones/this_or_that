@@ -5,7 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>This or That - Image Voting Tool</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🤔</text></svg>">
+    <!-- Google Fonts for ransom-note aesthetic -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Anton&family=Libre+Franklin:wght@700;900&family=Staatliches&display=swap" rel="stylesheet">
     <style>
+        /* CSS Variables - Figma Theme */
+        :root {
+            --primary: #FF10F0;
+            --secondary: #FFED00;
+            --background: #ffffff;
+            --foreground: #000000;
+            --muted: #f5f5f5;
+            --border: #000000;
+            --shadow: 5px 6px 0px rgba(0, 0, 0, 0.3);
+            --shadow-hover: 7px 8px 0px rgba(0, 0, 0, 0.3);
+            --shadow-active: 3px 4px 0px rgba(0, 0, 0, 0.3);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -13,29 +30,60 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Libre Franklin', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--background);
             min-height: 100vh;
             padding: 20px;
             display: flex;
             justify-content: center;
             align-items: center;
+            color: var(--foreground);
         }
 
         .container {
-            background: white;
-            border-radius: 20px;
+            background: var(--background);
+            border: 2px solid var(--border);
             padding: 40px;
             max-width: 900px;
             width: 100%;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            box-shadow: var(--shadow);
         }
 
         h1 {
             text-align: center;
-            color: #333;
+            color: var(--foreground);
             margin-bottom: 30px;
-            font-size: 2em;
+            font-size: 3em;
+            font-family: 'Bebas Neue', 'Anton', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Ransom-note style title */
+        .title-this {
+            display: inline-block;
+            background: var(--secondary);
+            padding: 0.2rem 0.6rem;
+            transform: rotate(-2deg);
+            box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.3);
+        }
+
+        .title-or {
+            display: inline-block;
+            background: var(--foreground);
+            color: var(--primary);
+            padding: 0.2rem 0.6rem;
+            transform: rotate(1deg);
+            box-shadow: 4px 4px 0px rgba(255, 16, 240, 0.3);
+            margin: 0 0.3rem;
+        }
+
+        .title-that {
+            display: inline-block;
+            background: var(--primary);
+            padding: 0.2rem 0.6rem;
+            transform: rotate(2deg);
+            box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.3);
         }
 
         .create-poll {
@@ -47,9 +95,12 @@
         }
 
         .input-section h2 {
-            font-size: 1.2em;
-            color: #666;
-            margin-bottom: 15px;
+            font-size: 1.4em;
+            color: var(--foreground);
+            margin-bottom: 20px;
+            font-family: 'Staatliches', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
         }
 
         .option-inputs {
@@ -60,21 +111,48 @@
         }
 
         .option-input {
-            border: 2px dashed #ddd;
-            border-radius: 10px;
+            border: 2px solid var(--border);
             padding: 20px;
             text-align: center;
-            transition: border-color 0.3s;
+            transition: all 0.2s ease;
+            background: var(--background);
+            box-shadow: var(--shadow);
         }
 
         .option-input:hover {
-            border-color: #667eea;
+            box-shadow: var(--shadow-hover);
+            transform: translate(-2px, -2px);
+        }
+
+        .option-input:first-child {
+            border-color: var(--secondary);
+        }
+
+        .option-input:last-child {
+            border-color: var(--primary);
         }
 
         .option-input h3 {
-            font-size: 1em;
-            color: #666;
-            margin-bottom: 10px;
+            font-size: 1.2em;
+            color: var(--foreground);
+            margin-bottom: 15px;
+            font-family: 'Bebas Neue', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .option-input:first-child h3 {
+            background: var(--secondary);
+            display: inline-block;
+            padding: 0.2rem 0.8rem;
+            transform: rotate(-1deg);
+        }
+
+        .option-input:last-child h3 {
+            background: var(--primary);
+            display: inline-block;
+            padding: 0.2rem 0.8rem;
+            transform: rotate(1deg);
         }
 
         input[type="file"] {
@@ -82,34 +160,50 @@
         }
 
         .upload-btn {
-            background: #667eea;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 8px;
+            background: var(--foreground);
+            color: var(--background);
+            padding: 12px 24px;
             cursor: pointer;
             display: inline-block;
-            margin-bottom: 10px;
-            transition: background 0.3s;
+            margin-bottom: 15px;
+            transition: all 0.2s ease;
+            font-family: 'Staatliches', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border: 2px solid var(--foreground);
+            box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.3);
         }
 
         .upload-btn:hover {
-            background: #5568d3;
+            background: var(--primary);
+            color: var(--foreground);
+            box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.3);
+            transform: translate(-2px, -2px);
         }
 
         input[type="text"] {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 0.9em;
+            padding: 12px;
+            border: 2px solid var(--border);
+            font-size: 0.95em;
+            font-family: 'Libre Franklin', sans-serif;
+            background: var(--background);
+            transition: all 0.2s ease;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 4px 4px 0px rgba(255, 16, 240, 0.3);
         }
 
         .preview {
-            margin-top: 10px;
+            margin-top: 15px;
             max-width: 100%;
-            border-radius: 5px;
             max-height: 150px;
             display: none;
+            border: 2px solid var(--border);
+            box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.3);
         }
 
         .preview.show {
@@ -117,24 +211,37 @@
         }
 
         .create-btn {
-            background: #764ba2;
-            color: white;
-            padding: 15px 40px;
-            border: none;
-            border-radius: 10px;
-            font-size: 1.1em;
+            background: var(--primary);
+            color: var(--foreground);
+            padding: 18px 40px;
+            border: 2px solid var(--foreground);
+            font-size: 1.3em;
             cursor: pointer;
             width: 100%;
-            transition: background 0.3s;
+            transition: all 0.2s ease;
+            font-family: 'Bebas Neue', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            box-shadow: var(--shadow);
         }
 
         .create-btn:hover {
-            background: #653a8a;
+            background: var(--secondary);
+            box-shadow: var(--shadow-hover);
+            transform: translate(-2px, -2px);
+        }
+
+        .create-btn:active {
+            box-shadow: var(--shadow-active);
+            transform: translate(2px, 2px);
         }
 
         .create-btn:disabled {
-            background: #ccc;
+            background: var(--muted);
+            color: #999;
             cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
         }
 
         .voting-poll {
@@ -151,122 +258,190 @@
         .poll-option {
             text-align: center;
             position: relative;
+            border: 2px solid var(--border);
+            background: var(--background);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: all 0.2s ease;
+        }
+
+        .poll-option:first-child {
+            border-color: var(--secondary);
+        }
+
+        .poll-option:last-child {
+            border-color: var(--primary);
+        }
+
+        .poll-option:hover {
+            box-shadow: var(--shadow-hover);
+            transform: translate(-2px, -2px);
         }
 
         .poll-option img {
             width: 100%;
-            border-radius: 10px;
             cursor: pointer;
-            transition: transform 0.3s, box-shadow 0.3s;
-            border: 3px solid transparent;
+            transition: transform 0.3s ease;
+            display: block;
         }
 
-        .poll-option img:hover {
-            transform: scale(1.05);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        .poll-option:hover img {
+            transform: scale(1.02);
         }
 
-        .poll-option.voted img {
-            border-color: #667eea;
+        .poll-option.voted {
+            box-shadow: 8px 10px 0px rgba(0, 0, 0, 0.4);
+        }
+
+        .poll-option:first-child.voted {
+            border-width: 4px;
+        }
+
+        .poll-option:last-child.voted {
+            border-width: 4px;
         }
 
         .vote-count {
-            margin-top: 15px;
-            font-size: 1.5em;
-            font-weight: bold;
-            color: #667eea;
+            padding: 15px;
+            font-size: 1.4em;
+            font-weight: 900;
+            color: var(--foreground);
+            font-family: 'Bebas Neue', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .poll-option:first-child .vote-count {
+            background: var(--secondary);
+        }
+
+        .poll-option:last-child .vote-count {
+            background: var(--primary);
         }
 
         .product-link {
-            display: inline-block;
-            margin-top: 10px;
-            color: #667eea;
+            display: block;
+            padding: 10px;
+            background: var(--foreground);
+            color: var(--background);
             text-decoration: none;
             font-size: 0.9em;
+            font-family: 'Staatliches', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: all 0.2s ease;
         }
 
         .product-link:hover {
-            text-decoration: underline;
+            background: var(--primary);
+            color: var(--foreground);
         }
 
         .share-section {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
+            background: var(--muted);
+            padding: 25px;
+            border: 2px solid var(--border);
             text-align: center;
+            box-shadow: var(--shadow);
         }
 
         .share-section h2 {
-            font-size: 1.2em;
-            color: #333;
-            margin-bottom: 10px;
+            font-size: 1.4em;
+            color: var(--foreground);
+            margin-bottom: 15px;
+            font-family: 'Staatliches', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
         }
 
         .share-url {
-            background: white;
-            padding: 10px;
-            border-radius: 5px;
+            background: var(--background);
+            padding: 15px;
             word-break: break-all;
-            margin-bottom: 10px;
-            border: 1px solid #ddd;
+            margin-bottom: 15px;
+            border: 2px solid var(--border);
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
         }
 
         .copy-btn {
-            background: #667eea;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
+            background: var(--secondary);
+            color: var(--foreground);
+            padding: 12px 24px;
+            border: 2px solid var(--foreground);
             cursor: pointer;
-            transition: background 0.3s;
+            transition: all 0.2s ease;
+            font-family: 'Staatliches', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.3);
         }
 
         .copy-btn:hover {
-            background: #5568d3;
+            background: var(--primary);
+            box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.3);
+            transform: translate(-2px, -2px);
+        }
+
+        .copy-btn:active {
+            box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.3);
+            transform: translate(2px, 2px);
         }
 
         .new-poll-btn {
-            background: #764ba2;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
+            background: var(--foreground);
+            color: var(--background);
+            padding: 12px 24px;
+            border: 2px solid var(--foreground);
             cursor: pointer;
-            transition: background 0.3s;
+            transition: all 0.2s ease;
             margin-top: 15px;
+            font-family: 'Staatliches', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.3);
         }
 
         .new-poll-btn:hover {
-            background: #653a8a;
+            background: var(--primary);
+            color: var(--foreground);
+            box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.3);
+            transform: translate(-2px, -2px);
         }
 
         .loading {
             text-align: center;
-            color: #666;
-            padding: 20px;
+            color: var(--foreground);
+            padding: 30px;
+            font-family: 'Staatliches', sans-serif;
+            font-size: 1.2em;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
         }
 
         .error {
-            background: #fee;
-            color: #c33;
-            padding: 15px;
-            border-radius: 5px;
+            background: var(--primary);
+            color: var(--foreground);
+            padding: 20px;
             margin-bottom: 20px;
+            border: 2px solid var(--foreground);
+            font-family: 'Staatliches', sans-serif;
+            text-transform: uppercase;
+            box-shadow: var(--shadow);
         }
 
         .version-badge {
             position: absolute;
             top: 10px;
             right: 10px;
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            color: white;
-            padding: 6px 12px;
-            border-radius: 20px;
+            background: var(--foreground);
+            color: var(--primary);
+            padding: 8px 14px;
             font-size: 11px;
             font-family: 'Courier New', monospace;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 3px 3px 0px rgba(255, 16, 240, 0.4);
             z-index: 1000;
+            border: 2px solid var(--primary);
         }
 
         @media (max-width: 768px) {
@@ -278,9 +453,19 @@
                 padding: 20px;
             }
 
+            h1 {
+                font-size: 2em;
+            }
+
             .version-badge {
                 font-size: 10px;
-                padding: 4px 8px;
+                padding: 6px 10px;
+            }
+
+            .title-this, .title-or, .title-that {
+                display: block;
+                margin: 5px auto;
+                width: fit-content;
             }
         }
     </style>
@@ -288,7 +473,7 @@
 <body>
     <div class="version-badge">v: c9ec513 | 2026-01-10</div>
     <div class="container">
-        <h1>This or That?</h1>
+        <h1><span class="title-this">This</span><span class="title-or">or</span><span class="title-that">That?</span></h1>
 
         <div class="create-poll" id="createSection">
             <div class="input-section">
